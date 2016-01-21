@@ -343,12 +343,16 @@ $.extend( Form.prototype, {
             if( v === '' && that.c.dataIgnoreEmpty ){
                 //Ignore empty data
             }else{
-                var one = {};
-                one[k] = v;
-                $.extend( true,
-                    data,
-                    one
-                );
+                if( typeof data[k] == "undefined" ){
+                    var one = {};
+                    one[k] = v;
+                    $.extend( true,
+                        data,
+                        one
+                    );
+                }else{
+                    data[k] = data[k] + ',' + v;
+                }
             }
         } );
 
