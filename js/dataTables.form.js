@@ -99,40 +99,80 @@ $.extend( Form.prototype, {
     /**
      * Destroy the instance, cleaning up event handlers and removing DOM
      * elements
-     * @return {Buttons} Self for chaining
+     * @return {Widget} Self for chaining
      */
     destroy: function ()
     {
         // Key event listener
         $('body').off( 'keyup.'+this.s.namespace );
 
-        // Individual button destroy (so they can remove their own events if
+        // Individual widget destroy (so they can remove their own events if
         // needed
-        var form = this.s.form;
+        this.s.form = null;
         var widgets = this.s.widgets;
-        //var i, ien, j, jen;
-        //
-        //for ( i=0, ien=widgets.length ; i<ien ; i++ ) {
-        //    //this.removePrep( i );
-        //
-        //    for ( j=0, jen=widgets[i].length ; j<jen ; j++ ) {
-        //        //this.removePrep( i+'-'+j );
-        //    }
-        //}
+        var i, ien, j, jen;
+
+        for ( i=0, ien=widgets.length ; i<ien ; i++ ) {
+            this.removePrep( i );
+
+            //for ( j=0, jen=widgets[i].length ; j<jen ; j++ ) {
+            //    //this.removePrep( i+'-'+j );
+            //}
+            this.s.widgetCount--;
+        }
         //
         //this.removeCommit();
         //
         //// Container
         //this.dom.container.remove();
         //
-        //// Remove form the settings object collection
-        //var buttonInsts = this.s.dt.settings()[0];
+        // Remove form the settings object collection
+        var formInsts = this.s.dt.settings()[0]._form;
+
+        for ( i=0, ien=formInsts.length ; i<ien ; i++ ) {
+            if ( formInsts[i].inst === this ) {
+                formInsts.splice( i, 1 );
+                break;
+            }
+        }
+
+        return this;
+    },
+
+    /**
+     * Scheduled a widget for removal. This is required so multiple widgets can
+     * be removed without upsetting the widget indexes while removing them.
+     * @return {Widget} Self for chaining
+     */
+    removePrep: function ( idx )
+    {
+        var widget;
+        var dt = this.s.dt;
+
+        if ( typeof idx === 'number' || idx.indexOf('-') === -1 ) {
+            // widget
+            widget = this.s.widgets[ idx*1 ];
+
+            //if ( widget.conf.destroy ) {
+            //    widget.conf.destroy.call( dt.button(idx), dt, widget, widget.conf );
+            //}
+            //
+            //widget.node.remove();
+            //this._removeKey( widget.conf );
+            this.s.widgets[ idx*1 ] = null;
+        }
+        //else {
+        //    // Collection button
+        //    var idxs = idx.split('-');
+        //    widget = this.s.subButtons[ idxs[0]*1 ][ idxs[1]*1 ];
         //
-        //for ( i=0, ien=buttonInsts.length ; i<ien ; i++ ) {
-        //    if ( buttonInsts.inst === this ) {
-        //        buttonInsts.splice( i, 1 );
-        //        break;
+        //    if ( widget.conf.destroy ) {
+        //        widget.conf.destroy.call( dt.button(idx), dt, widget, widget.conf );
         //    }
+        //
+        //    widget.node.remove();
+        //    this._removeKey( widget.conf );
+        //    this.s.subButtons[ idxs[0]*1 ][ idxs[1]*1 ] = null;
         //}
 
         return this;
@@ -345,7 +385,7 @@ $.extend( Form.prototype, {
             }else{
                 if( typeof data[k] == "undefined" ){
                     var one = {};
-                    one[k] = v;
+                    one[k] = decodeURIComponent(v);
                     $.extend( true,
                         data,
                         one
@@ -475,7 +515,7 @@ Form.defaults = {
     widgetType: 'Html',
     widgetFun: {
         Html: Form.getHtmlWidget
-    },
+    }
     //event
     //onCreateForm: null
 };
